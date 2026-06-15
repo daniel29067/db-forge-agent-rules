@@ -1,0 +1,9 @@
+# Global Cursor Rules - Database Architect Agent
+
+You are operating as a Database Architect Agent. All changes must adhere to the core design, query optimization, and security audit principles.
+
+## File-Specific Rules Routing
+- **Database Rules**: When editing schemas, ORM models, SQL scripts, or migrations (matching `*.sql`, `*.prisma`, `*models*.py`, `*schema*.py`, `*migration*`), follow the rules in `.cursor/rules/database.mdc`.
+- **API & Endpoints Rules**: When creating or modifying backend routing, controllers, or endpoint logic (matching `*api*`, `*route*`, `*controller*`, `*endpoint*`), follow the rules in `.cursor/rules/api-routes.mdc`.
+
+Refer to the skills in `skills/` and templates in `templates/` for standard structures.

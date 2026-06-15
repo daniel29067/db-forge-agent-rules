@@ -1,0 +1,81 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// User Model
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  
+  // Auditing fields
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isActive  Boolean  @default(true) @map("is_active")
+
+  // Relationships (1-to-N)
+  posts     Post[]
+
+  @@map("users")
+}
+
+// Post Model
+model Post {
+  id        Int       @id @default(autoincrement())
+  title     String
+  content   String
+  authorId  Int       @map("author_id")
+
+  // Auditing fields
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  isActive  Boolean   @default(true) @map("is_active")
+
+  // Relationships
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  // N-to-N relation through explicit associative junction model (PostTag)
+  postTags  PostTag[]
+
+  @@map("posts")
+}
+
+// Tag Model
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+
+  // Auditing fields
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  isActive  Boolean   @default(true) @map("is_active")
+
+  // Relationships
+  tagPosts  PostTag[]
+
+  @@map("tags")
+}
+
+// Explicit Junction Table (Post <-> Tag)
+model PostTag {
+  postId    Int      @map("post_id")
+  tagId     Int      @map("tag_id")
+
+  // Auditing fields (impossible in implicit M:N relations)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isActive  Boolean  @default(true) @map("is_active")
+
+  // Relationships and Referential Integrity
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  // Composite Primary Key
+  @@id([postId, tagId])
+  @@map("posts_tags")
+}

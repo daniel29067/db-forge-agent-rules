@@ -1,0 +1,38 @@
+---
+description: Apply API development standards when creating or modifying API endpoints, routes, controllers, or payload validators.
+globs: ["**/routes/**/*.py", "**/api/**/*.py", "**/endpoints/**/*.py", "**/controllers/**/*.py", "**/routes/**/*.ts", "**/api/**/*.ts", "**/controllers/**/*.ts"]
+---
+
+# API Endpoint & Routing Guidelines
+
+You are editing an API routing or controller file. You must follow these transactional and optimization guidelines.
+
+<rule>
+1. TRANSACTION MANAGEMENT
+- **Atomic Operations**: Any API endpoint that performs multiple write operations (inserts, updates, deletes) must wrap those operations inside a database transaction block.
+- **Rollback Safety**: Ensure transactions roll back automatically on unhandled exceptions (e.g., use context managers like `async with db.begin()` or database-level transactions).
+- **Session Lifecycles**: Do not leave database connections or sessions open longer than necessary. Bind session lifecycle to the request-response lifecycle.
+</rule>
+
+<rule>
+2. PREVENTING N+1 QUERY PATTERNS
+- **No Database Queries in Loops**: Never execute database queries (ORM or SQL) inside a loop (`for`, `while`, `forEach`, `map`).
+- **Eager Loading**: Pre-fetch all related entities needed by the endpoint payload:
+  - In SQLAlchemy, use options like `joinedload`, `selectinload`, or `subqueryload`.
+  - In Prisma, use the `include` or `select` parameters.
+- **Bulk Fetching**: If eager loading is not possible, fetch related keys in a single bulk query (e.g. `IN (keys...)`) and map them in-memory.
+</rule>
+
+<rule>
+3. REQUEST & RESPONSE VALIDATION
+- **Input Validation**: Every API endpoint must validate incoming request bodies, query parameters, and path variables using a schema validation tool (e.g., Pydantic schemas in FastAPI, Zod in TypeScript/NextJS).
+- **Data Hiding**: Never return raw database models/records directly. Use serializer schemas (DTOs) to filter out internal system information (e.g. password hashes, deleted flags, internal keys).
+- **Explicit Status Codes**: Return standard, descriptive HTTP status codes:
+  - `200 OK` for successful read/update operations.
+  - `201 Created` for successful resource creation.
+  - `204 No Content` for successful deletes with empty bodies.
+  - `400 Bad Request` for validation or client errors.
+  - `401 Unauthorized` / `403 Forbidden` for auth failures.
+  - `404 Not Found` for missing resources.
+  - `422 Unprocessable Entity` for syntax/schema validation failures.
+</rule>

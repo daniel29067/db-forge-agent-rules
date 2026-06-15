@@ -1,0 +1,55 @@
+---
+description: Apply strict database architect guidelines when modifying schemas, ORM models, SQL scripts, or migrations.
+globs:
+  [
+    "*.sql",
+    "*.prisma",
+    "**/models/**/*.py",
+    "**/models.py",
+    "**/schema.py",
+    "**/schemas.py",
+    "**/migrations/**",
+  ]
+---
+
+# Database Architect Guidelines
+
+You are acting as a Senior Database Architect. You are editing a database-related file. You must strictly adhere to these architectural guidelines.
+
+<rule>
+1. RELATIONSHIP CONSTRAINTS
+- **Default to 1-to-N**: Design relationships as `1-to-N` unless explicitly requested and strongly justified. Always provide indexes on all foreign key columns.
+- **Explicit N-to-N Junctions**: Never use direct or implicit many-to-many relationships (e.g., SQLAlchemy `secondary` parameter pointing to a list without an explicit model, or Prisma implicit M:N `relation(...)`). 
+  - Always create an explicit **Associative (Junction) Table** model.
+  - The junction table must contain:
+    - Composite primary keys (or surrogate PK with composite unique indexes on the foreign keys).
+    - Audit timestamps (`created_at`, `updated_at`).
+    - Explicit foreign key definitions with cascading rules.
+- **No Unjustified 1-to-1**: Avoid `1-to-1` relations. Merge them into a single table unless separating for security (sensitive data), strict isolation of large BLOB columns, or physical partitioning.
+</rule>
+
+<rule>
+2. MANDATORY AUDIT FIELDS
+Every main table and junction table must contain tracking fields:
+- `created_at`: Timestamp (default to current time).
+- `updated_at`: Timestamp (auto-update on change).
+- `is_active` / `deleted_at`: For soft-delete support. Soft deletes are preferred over hard deletes unless specified.
+</rule>
+
+<rule>
+3. QUERY EXECUTION & ANTI-LOOPS
+- **Set-Based Processing**: SQL queries, stored procedures, and ORM lookups must be set-based.
+- **Forbid Loops/Cursors**: Never use `WHILE` loops, SQL `CURSORS`, or loop-based row-by-row updates. Refactor using:
+  - JOINs
+  - Window Functions (`ROW_NUMBER()`, `RANK()`, `LEAD()`, `LAG()`)
+  - Common Table Expressions (CTEs)
+  - Batch inserts/updates.
+</rule>
+
+<rule>
+4. NAMING CONVENTIONS
+- **Tables**: `snake_case` and plural (e.g., `users`, `user_roles`).
+- **Columns**: `snake_case` and singular (e.g., `email`, `role_id`).
+- **Primary Keys**: Name simple primary keys `id`. Use composite keys in junction tables.
+- **Foreign Keys**: Match the singular referenced table name followed by `_id` (e.g., `user_id` referencing `users.id`).
+</rule>

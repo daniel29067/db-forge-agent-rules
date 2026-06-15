@@ -1,0 +1,44 @@
+---
+description: Enforces strict query optimization, set-based operations, and prevents N+1 issues when writing data access logic.
+globs:
+  [
+    "**/*repository*.ts",
+    "**/*service*.ts",
+    "**/*router*.py",
+    "**/*crud*.py",
+    "**/api/**/*.ts",
+    "**/actions/**/*.ts",
+    "**/*.sql",
+  ]
+---
+
+# Query Optimization Rules
+
+You are acting as a Senior Database Performance Engineer. Whenever you write or review SQL queries, ORM data access patterns, or route handlers, you must strictly enforce these performance rules.
+
+<rule>
+1. SET-BASED OPERATIONS ONLY
+- NEVER use procedural loops (`WHILE` in SQL, or `for/map` loops in application code executing individual queries).
+- NEVER use database cursors.
+- ALWAYS refactor to `JOIN`s, CTEs, or Window Functions.
+- Use bulk inserts/updates (`INSERT ... VALUES (...), (...)` or `MERGE`) instead of row-by-row operations.
+</rule>
+
+<rule>
+2. PREVENT N+1 QUERY PROBLEM
+- NEVER generate application code that loops over a collection to fetch related records one by one.
+- **Prisma:** ALWAYS use `include` or nested `select` to fetch related data in a single query.
+- **SQLAlchemy:** ALWAYS use explicit eager loading (`joinedload`, `selectinload`).
+</rule>
+
+<rule>
+3. SCALABLE PAGINATION
+- DO NOT use `OFFSET` pagination for listing large datasets.
+- ALWAYS implement Keyset/Cursor-based pagination using an indexed sequential column (e.g., `WHERE id > :cursor ORDER BY id ASC LIMIT X`).
+</rule>
+
+<rule>
+4. STRICT SELECTIVITY & SARGABILITY
+- NEVER use `SELECT *` or fetch unneeded columns in ORM models. Only query the fields required by the payload.
+- NEVER wrap indexed columns in functions within the `WHERE` clause (e.g., use `date >= '2026-01-01'` instead of `YEAR(date) = 2026`).
+</rule>

@@ -1,31 +1,40 @@
-# Agentic DB Architect Skills
+```markdown
+# 🏛️ db-forge-agent-rules
 
-A repository of specialized agent skills, prompts, and context rules designed for AI coding assistants (Cursor, Claude, Codex, etc.) to autonomously design, audit, and refactor database architectures via code. 
+**Specialized AI agent skills, prompts, and context rules to autonomously design, audit, and refactor database architectures via code.**
 
-## 🎯 Vision
-The goal of these skills is to enforce strict database engineering best practices. The agents utilizing these skills will not execute commands directly against a live database. Instead, they will act as **Database Architects**, generating, reviewing, and improving DDL scripts, ORM models, and migration files.
+## 🎯 The Vision
 
-## 🧠 Core Engineering Principles (Agent Directives)
+Modern AI coding assistants (Cursor, Antigravity, Claude Code, Codex) are powerful, but left to their own devices, they often generate poor database architectures (implicit many-to-many tables, procedural loops, N+1 query problems).
 
-When operating under these skills, the AI must strictly adhere to the following principles:
+This repository acts as a **Senior Database Architect's Brain**. It forces AI models to prioritize set-based operations, strict indexing, explicit relationships, and robust auditability.
 
-1.  **Set-Based Operations Over Procedural Loops:** * **Rule:** Absolutely avoid `WHILE` loops, cursors, or procedural row-by-row processing in SQL.
-    * **Action:** Always refactor logic to use set-based operations (JOINs, Window Functions, CTEs) for data manipulation.
+## 📂 Repository Structure
 
-2.  **Strict Relationship Management:**
-    * **Rule:** Default to `1-to-N` relationships.
-    * **Action:** * Reject `1-to-1` relationships unless explicitly justified (e.g., strict security partitioning or isolating massive BLOB columns).
-        * Never implement direct `N-to-N` relationships. Always construct an explicit associative (junction/mapping) table with its own primary key and audit timestamps.
-
-3.  **Code-First Architecture:**
-    * **Rule:** All architectural changes must be represented as version-controlled code.
-    * **Action:** Produce standardized DDL schemas, constraints (Foreign Keys, UNIQUE, CHECK), and precise rollback scripts.
-
-4.  **Auditing & Consistency:**
-    * **Rule:** Every table must be traceable.
-    * **Action:** Automatically append standard audit columns (e.g., `created_at`, `updated_at`, `is_active`/`deleted_at` for soft deletes) to all new table definitions.
+- **`.cursor/rules/`**: Context-aware `.mdc` files that Cursor IDE reads automatically when you touch database models or API routes.
+- **`skills/`**: Standalone `SKILL.md` directories designed to be mounted as global or workspace skills for CLI agents (like Antigravity).
+- **`examples/`**: "Show, Don't Tell" code snippets demonstrating strict anti-patterns vs. enforced standards for SQL, Prisma, and SQLAlchemy.
 
 ## 🚀 How to Use
 
-* **Cursor:** Copy the contents of `.cursorrules` into your project root.
-* **CLI Agents:** Mount or sync the markdown files located in the `/skills` directory into your agent's global or workspace skill configuration.
+### 1. In Cursor IDE
+
+Clone this repository or copy the `.cursor/rules` folder directly into your project's root. Cursor will automatically read the `globs` and inject these architectural guidelines anytime you open a file matching `schema.prisma`, `models.py`, or `migrations/*.sql`.
+
+### 2. With CLI Agents (Antigravity)
+
+Map the `/skills` directory to your agent's global skills path.
+When prompting the agent to design a database, it will adhere to the constraints defined in `skills/schema-design/SKILL.md` and `skills/query-optimization/SKILL.md`.
+
+### 3. With Claude / ChatGPT
+
+Simply copy/paste the content of the relevant `examples/` file alongside your prompt.
+_Example:_ "Generate a new Prisma schema for a Blogging platform. Follow the exact relationship constraints shown in `examples/02-many-to-many-prisma.md`."
+
+## 🧠 Core Directives Enforced
+
+1. **Set-Based Over Procedural**: Absolute ban on SQL `WHILE` loops and cursors.
+2. **Explicit Relationships**: Absolute ban on implicit Many-to-Many relationships. Associative tables with audit columns are mandatory.
+3. **N+1 Prevention**: Forced eager loading patterns in application code.
+4. **Scalable Pagination**: Banning `OFFSET` in favor of Keyset (Cursor) pagination.
+```
